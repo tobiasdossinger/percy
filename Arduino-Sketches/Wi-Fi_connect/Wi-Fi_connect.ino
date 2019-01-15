@@ -1,22 +1,28 @@
 
-
 // Load Wi-Fi library
 #include <WiFi.h>
 
+
+
 // Replace with your network credentials
-const char* ssid     = "Locals Only";
+const char* ssid     = "LocalsOnly";
 const char* password = "Tobias!!";
+
 
 // Define PIN and Channel for the motor
 uint8_t motorPin = 12;
+
 uint8_t motorChannel = 1;
 
 // Variable to store the HTTP request
 String header;
 
-// Auxiliar variables to store the current output state
 
-String motorPinState = "off";
+// Auxiliar variables to store the current output state
+String motorPinStateStop = "off";
+String motorPinStateRechts = "off";
+String motorPinStateLinks = "off";
+
 
 
 // Set web server port number to 80
@@ -26,12 +32,12 @@ WiFiServer server(80);
 void setup() {
   Serial.begin(115200);
   
-    // Attatch motor pin to channel
-    ledcAttachPin(motorPin, motorChannel);
-    // Initialize motor channel with 12 kHz PWM frequency and 8-bit resolution
-    ledcSetup(motorChannel, 12000, 8);
-  
+  // Attatch motor pin to channel
+  ledcAttachPin(motorPin, motorChannel);
+  // Initialize motor channel with 12 kHz PWM frequency and 8-bit resolution
+  ledcSetup(motorChannel, 12000, 8);
 
+  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -71,48 +77,109 @@ void loop(){
             client.println();
             
             // turns the GPIOs on and off
-            if (header.indexOf("GET /12/on") >= 0) {
-              Serial.println("GPIO 12 on");
-              motorPinState = "on";
+            if (header.indexOf("GET /12/onMuster1") >= 0) {
+              Serial.println("GPIO 12 onMuster1");
+              motorPinStateStop = "on";
               ledcWrite(motorChannel, 255);
-              // Wait a bit
-              delay(100);
 
-              
-              //digitalWrite(motorPin, HIGH);
-            } else if (header.indexOf("GET /12/off") >= 0) {
-              Serial.println("GPIO 12 off");
-              motorPinState = "off";
+            } else if (header.indexOf("GET /12/offMuster1") >= 0) {
+              Serial.println("GPIO 12 offMuster1");
+              motorPinStateStop = "off";
               ledcWrite(motorChannel, 0);
-              
-              
-              
-            }
+
+            } 
             
+            else if (header.indexOf("GET /12/onMuster2") >= 0) {
+              Serial.println("GPIO 12 onMuster2");
+              motorPinStateRechts = "on";
+              ledcWrite(motorChannel, 60);
+              delay(500);
+              ledcWrite(motorChannel, 100);
+              delay(500);
+              ledcWrite(motorChannel, 100);  
+            } 
+            
+            else if (header.indexOf("GET /12/offMuster2") >= 0) {
+              Serial.println("GPIO 12 offMuster2");
+              motorPinStateRechts = "off";
+              ledcWrite(motorChannel, 0);
+            }
+
+
+             else if (header.indexOf("GET /12/onMuster3") >= 0) {
+              Serial.println("GPIO 12 onMuster3");
+              motorPinStateRechts = "on";
+              ledcWrite(motorChannel, 150);
+
+              // Count up from 0 to 255
+//              for (int val = 0; val < 255; val++) {
+//                  // Write value (0-255) of the loop to the motor channel
+//                  ledcWrite(motorChannel, val);
+//                  // Wait a bit
+//                  delay(100);
+//              }
+              
+            } 
+            
+            else if (header.indexOf("GET /12/offMuster3") >= 0) {
+              Serial.println("GPIO 12 offMuster3");
+              motorPinStateRechts = "off";
+              ledcWrite(motorChannel, 0);
+            }
+
+            
+            
+
             
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
+
+            
             // CSS to style the on/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-            client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
-            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println(".button2 {background-color: #555555;}</style></head>");
+
+            
+            client.println(".buttonStopMusterOn {background-color: #c32439; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} .buttonRechtsMusterOn {background-color: #d2ddd8; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;");
+            client.println(".buttonStopMusterOff {background-color: #670c31}; .buttonRechtsMusterOff {background-color: #d2ddd8;} .buttonLinksMusterOn {background-color: #c32439; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} .buttonLinksMusterOff {background-color: #d2ddd8;}  </style></head>");
+
+
+
+
+            
             
             // Web Page Heading
-            client.println("<body><h1>ESP32 Web Server</h1>");
+            client.println("<body><h1>Percy Vibrationsmotoren Test</h1>");
             
-            // Display current state, and ON/OFF buttons for GPIO 26  
-            client.println("<p>GPIO 12 - State " + motorPinState + "</p>");
+            // Rechter Vibrationsmotor in HTML  
+            client.println("<p>Stop Vibrationsmuster " + motorPinStateStop + "</p>");
             // If the motorPinState is off, it displays the ON button       
-            if (motorPinState=="off") {
-              client.println("<p><a href=\"/12/on\"><button class=\"button\">ON</button></a></p>");
+            if (motorPinStateStop=="off") {
+              client.println("<p><a href=\"/12/onMuster1\"><button class=\"buttonStopMusterOn\">STOP</button></a></p>");
             } else {
-              client.println("<p><a href=\"/12/off\"><button class=\"button button2\">OFF</button></a></p>");
+              client.println("<p><a href=\"/12/offMuster1\"><button class=\"buttonStopMusterOn buttonStopMusterOff\">GO</button></a></p>");
+
             } 
-               
+
+              // Rechter Vibrationsmotor in HTML
+            client.println("<p>Rechter Vibrationsmotor " + motorPinStateRechts + "</p>");
+            // If the motorPinState is off, it displays the ON button       
+            if (motorPinStateRechts=="off") {
+              client.println("<p><a href=\"/12/onMuster2\"><button class=\"buttonRechtsMusterOn\">ON</button></a></p>");
+            } else {
+              client.println("<p><a href=\"/12/offMuster2\"><button class=\"buttonRechtsMusterOn buttonRechtsMusterOff\">OFF</button></a></p>");
+            } 
+
+            client.println("<p>Linker Vibrationsmotor " + motorPinStateLinks + "</p>");
+            // If the motorPinState is off, it displays the ON button       
+            if (motorPinStateLinks=="off") {
+              client.println("<p><a href=\"/12/onMuster3\"><button class=\"buttonLinksMusterOn\">ON</button></a></p>");
+            } else {
+              client.println("<p><a href=\"/12/offMuster3\"><button class=\"buttonLinksMusterOn buttonLinksMusterOff\">OFF</button></a></p>");
+            } 
+
+              
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line
@@ -133,5 +200,6 @@ void loop(){
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+    
   }
 }
