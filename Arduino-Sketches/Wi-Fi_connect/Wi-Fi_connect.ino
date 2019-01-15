@@ -75,8 +75,14 @@ void loop(){
             client.println("Content-type:text/html");
             client.println("Connection: close");
             client.println();
-            
-            // turns the GPIOs on and off
+
+
+
+
+/*------------------------------- Turn Stuff (Pattern) on and off  -----------------------------------------*/
+     
+
+            // Center Motor - Stop - Glasses
             if (header.indexOf("GET /12/onMuster1") >= 0) {
               Serial.println("GPIO 12 onMuster1");
               motorPinStateStop = "on";
@@ -87,8 +93,9 @@ void loop(){
               motorPinStateStop = "off";
               ledcWrite(motorChannel, 0);
 
+
             } 
-            
+            // Right Motor - Right Shoulder
             else if (header.indexOf("GET /12/onMuster2") >= 0) {
               Serial.println("GPIO 12 onMuster2");
               motorPinStateRechts = "on";
@@ -98,7 +105,7 @@ void loop(){
               delay(500);
               ledcWrite(motorChannel, 100);  
             } 
-            
+
             else if (header.indexOf("GET /12/offMuster2") >= 0) {
               Serial.println("GPIO 12 offMuster2");
               motorPinStateRechts = "off";
@@ -106,9 +113,13 @@ void loop(){
             }
 
 
+
+
+
+            // Left Motor - Left Shoulder
              else if (header.indexOf("GET /12/onMuster3") >= 0) {
               Serial.println("GPIO 12 onMuster3");
-              motorPinStateRechts = "on";
+              motorPinStateLinks = "on";
               ledcWrite(motorChannel, 150);
 
               // Count up from 0 to 255
@@ -123,12 +134,14 @@ void loop(){
             
             else if (header.indexOf("GET /12/offMuster3") >= 0) {
               Serial.println("GPIO 12 offMuster3");
-              motorPinStateRechts = "off";
+              motorPinStateLinks = "off";
               ledcWrite(motorChannel, 0);
             }
 
+
+
             
-            
+/*--------------------------------------- HTML & CSS Implementation ---------------------------------------------- */       
 
             
             // Display the HTML web page
@@ -136,19 +149,30 @@ void loop(){
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
 
+
+
+            /* CSS Button Classes */
             
             // CSS to style the on/off buttons 
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
 
-            
-            client.println(".buttonStopMusterOn {background-color: #c32439; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} .buttonRechtsMusterOn {background-color: #d2ddd8; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;");
-            client.println(".buttonStopMusterOff {background-color: #670c31}; .buttonRechtsMusterOff {background-color: #d2ddd8;} .buttonLinksMusterOn {background-color: #c32439; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;} .buttonLinksMusterOff {background-color: #d2ddd8;}  </style></head>");
-
-
-
-
+            // Stop Button
+            client.println(".buttonStopMusterOn {background-color: #c32439; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".buttonStopMusterOff {background-color: #24c36b;}");
             
             
+            //Right Button
+            client.println(".buttonRechtsMusterOn {background-color: #d2ddd8; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".buttonRechtsMusterOff {background-color: #24c36b;}");
+
+            
+            //Left Button
+            client.println(".buttonLinksMusterOn {background-color: #d2ddd8; border: none; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".buttonLinksMusterOff {background-color: #24c36b;}  </style></head>");
+            
+            
+
+
             // Web Page Heading
             client.println("<body><h1>Percy Vibrationsmotoren Test</h1>");
             
@@ -166,22 +190,26 @@ void loop(){
             client.println("<p>Rechter Vibrationsmotor " + motorPinStateRechts + "</p>");
             // If the motorPinState is off, it displays the ON button       
             if (motorPinStateRechts=="off") {
-              client.println("<p><a href=\"/12/onMuster2\"><button class=\"buttonRechtsMusterOn\">ON</button></a></p>");
+              client.println("<p><a href=\"/12/onMuster2\"><button class=\"buttonRechtsMusterOn\">OFF</button></a></p>");
             } else {
-              client.println("<p><a href=\"/12/offMuster2\"><button class=\"buttonRechtsMusterOn buttonRechtsMusterOff\">OFF</button></a></p>");
+              client.println("<p><a href=\"/12/offMuster2\"><button class=\"buttonRechtsMusterOn buttonRechtsMusterOff\">ON</button></a></p>");
             } 
 
             client.println("<p>Linker Vibrationsmotor " + motorPinStateLinks + "</p>");
             // If the motorPinState is off, it displays the ON button       
             if (motorPinStateLinks=="off") {
-              client.println("<p><a href=\"/12/onMuster3\"><button class=\"buttonLinksMusterOn\">ON</button></a></p>");
+              client.println("<p><a href=\"/12/onMuster3\"><button class=\"buttonLinksMusterOn\">OFF</button></a></p>");
             } else {
-              client.println("<p><a href=\"/12/offMuster3\"><button class=\"buttonLinksMusterOn buttonLinksMusterOff\">OFF</button></a></p>");
+              client.println("<p><a href=\"/12/offMuster3\"><button class=\"buttonLinksMusterOn buttonLinksMusterOff\">ON</button></a></p>");
             } 
-
-              
-            client.println("</body></html>");
+ 
             
+            
+            
+
+
+            
+            client.println("</body></html>");
             // The HTTP response ends with another blank line
             client.println();
             // Break out of the while loop
