@@ -13,7 +13,7 @@ void setup() {
 
 void loop() {
     // Count up from 0 to 255
-    for (val = 0; val < 255; val++) {
+    for (int val = 0; val < 255; val++) {
         // Write value (0-255) of the loop to the motor channel
         ledcWrite(motorChannel, val);
         // Wait a bit
