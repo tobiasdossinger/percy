@@ -31,7 +31,7 @@ static const float patternList[3][5][2] = {
   {
     {0, 0},
     {0.4, 1},
-    {0.6, 0.5},
+    {0.6, 0},
     {0.8, 1},
     {1, 0}
   }
@@ -53,29 +53,10 @@ void addPattern(int duration, int repeat, int motorID, int patternID) {
 
 int tCurrent;
 
-float tStart;
-float tEnd;
-float tDiff;
-
 
 void setup() {
   Serial.begin(9600);
   addPattern(2000, 1, 0, 2);
-//  tStart = millis();
-//  tEnd = tStart + 250;
-//  tDiff = tEnd - tStart;
-//  Serial.println(tDiff);
-//
-//  Serial.println("Sizeof");
-//  Serial.println(sizeof(patterns[0]) / sizeof(patterns[0][0]));
-//
-//  for(int i; i < sizeof(patterns[0]) / sizeof(patterns[0][0]); i++) {
-//    Serial.println("Index");
-//    Serial.println(i);
-//    Serial.println(patterns[0][i].percentage);
-//    Serial.println(patterns[0][i].intensity);
-//    Serial.println("");
-//  }
 
   tCurrent = millis();
   pinMode(7, OUTPUT);
@@ -85,25 +66,14 @@ void setup() {
 }
 
 void loop() {
-  //float tProgress = (millis() - tStart) / tDiff;
-
   int patternCount = activePatterns.size();
   
   if(patternCount) {
     for(int i = 0; i < patternCount; i++) {
       activePattern currentPattern = activePatterns.get(i);
-//        Serial.print(i);
-//        Serial.print(" --- ");
-//        Serial.print(currentPattern.tStart);
-//        Serial.print(" --- ");
-//        Serial.print(currentPattern.tDuration);
-//        Serial.print(" --- ");
-//        Serial.print(currentPattern.tEnd);
   
       if(tCurrent < currentPattern.tEnd) {
         float totalProgress = float(tCurrent - currentPattern.tStart) / float(currentPattern.tDuration);
-
-        //Serial.println(sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]));
 
         int ii = 0;
 
@@ -119,7 +89,25 @@ void loop() {
         float sectionProgress = (totalProgress - sectionStart[0]) / (sectionEnd[0] - sectionStart[0]);
         float currentIntensity = sectionStart[1] + ((sectionEnd[1] - sectionStart[1]) * sectionProgress);
         analogWrite(motorPINs[currentPattern.motorID], 255 * currentIntensity);
+
+        // Debug print code can be put here
         
+      } else {
+        analogWrite(motorPINs[currentPattern.motorID], 0);
+        activePatterns.remove(i);
+      }
+    }
+  }
+
+  tCurrent = millis();
+}
+
+
+
+
+
+// Debug Print Code
+
 //        Serial.print("IDs: ");
 //        Serial.print(i);
 //        Serial.print(" | ");
@@ -147,24 +135,3 @@ void loop() {
 //        Serial.print(") --- ");
 //        
 //        Serial.println(tCurrent);
-
-        // progress - start / end - start
-
-        //Serial.println(patternList[currentPattern.patternID][ii][0]);
-//        Serial.print(" --- ");
-//        Serial.print(progress);
-      } else {
-        analogWrite(motorPINs[currentPattern.motorID], 0);
-        activePatterns.remove(i);
-      }
-
-//      Serial.println("");
-    }
-
-//    Serial.println(activePatterns.size());
-//    Serial.println("");
-//    Serial.println(tCurrent);
-  }
-
-  tCurrent = millis();
-}
