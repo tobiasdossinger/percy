@@ -12,9 +12,9 @@ struct activePattern {
 
 LinkedList<activePattern> activePatterns;
 
-static const int motorPINs[3] = {7, 8, 9};
+int motorPINs[3] = {12, 8, 9};
 
-static const float patternList[3][5][2] = {
+float patternList[3][5][2] = {
   {
     {0, 0},
     {0.5, 0.25},
@@ -80,16 +80,17 @@ void loop() {
       if(tCurrent < currentPattern.tEnd) {
         float totalProgress = float(tCurrent - currentPattern.tStart) / float(currentPattern.tDuration);
 
-        int ii = 0;
+        int topIndex = 0;
 
-        for(ii; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
+        for(int ii = 0; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
           if(patternList[currentPattern.patternID][ii][0] > totalProgress) {
+            topIndex = ii;
             break;
           }
         }
 
-        float *sectionStart = patternList[currentPattern.patternID][ii - 1];
-        float *sectionEnd = patternList[currentPattern.patternID][ii];
+        float *sectionStart = patternList[currentPattern.patternID][topIndex - 1];
+        float *sectionEnd = patternList[currentPattern.patternID][topIndex];
 
         float sectionProgress = (totalProgress - sectionStart[0]) / (sectionEnd[0] - sectionStart[0]);
         float currentIntensity = sectionStart[1] + ((sectionEnd[1] - sectionStart[1]) * sectionProgress);
