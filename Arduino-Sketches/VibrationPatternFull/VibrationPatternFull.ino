@@ -12,9 +12,9 @@ struct activePattern {
 
 LinkedList<activePattern> activePatterns;
 
-static const int motorPINs[3] = {7, 8, 9};
+int motorPINs[3] = {12, 8, 9};
 
-static const float patternList[3][5][2] = {
+float patternList[3][5][2] = {
   {
     {0, 0},
     {0.5, 0.25},
@@ -80,23 +80,50 @@ void loop() {
       if(tCurrent < currentPattern.tEnd) {
         float totalProgress = float(tCurrent - currentPattern.tStart) / float(currentPattern.tDuration);
 
-        int ii = 0;
+        int nextKeyframe = 0;
 
-        for(ii; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
+        for(int ii; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
           if(patternList[currentPattern.patternID][ii][0] > totalProgress) {
+            nextKeyframe = ii;
             break;
           }
         }
 
-        float *sectionStart = patternList[currentPattern.patternID][ii - 1];
-        float *sectionEnd = patternList[currentPattern.patternID][ii];
+        Serial.println(nextKeyframe);
+
+        float *sectionStart = patternList[currentPattern.patternID][nextKeyframe - 1];
+        float *sectionEnd = patternList[currentPattern.patternID][nextKeyframe];
 
         float sectionProgress = (totalProgress - sectionStart[0]) / (sectionEnd[0] - sectionStart[0]);
         float currentIntensity = sectionStart[1] + ((sectionEnd[1] - sectionStart[1]) * sectionProgress);
         ledcWrite(1, 255 * currentIntensity);
         // analogWrite(motorPINs[currentPattern.motorID], 255 * currentIntensity);
 
-        // Debug print code can be put here
+        Serial.print("IDs: ");
+        Serial.print(i);
+        Serial.print(" --- ");
+        
+        Serial.print("Progress: ");
+        Serial.print(totalProgress);
+        Serial.print(" / ");
+        Serial.print(sectionProgress);
+        Serial.print(" (");
+        Serial.print(sectionStart[0]);
+        Serial.print(" | ");
+        Serial.print(sectionEnd[0]);
+        Serial.print(") --- ");
+        
+        Serial.print("Intensity: ");
+        Serial.print(currentIntensity);
+        Serial.print(" - ");
+        Serial.print(255 * currentIntensity);
+        Serial.print(" (");
+        Serial.print(sectionStart[1]);
+        Serial.print(" | ");
+        Serial.print(sectionEnd[1]);
+        Serial.print(") --- ");
+        
+        Serial.println(tCurrent);
         
       } else {
         ledcWrite(1, 0);

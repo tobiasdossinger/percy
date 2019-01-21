@@ -113,13 +113,12 @@ void loop(){
             }
 
 
-
-
-
             // Left Motor - Left Shoulder
              else if (header.indexOf("GET /12/onMuster3") >= 0) {
               Serial.println("GPIO 12 onMuster3");
               motorPinStateLinks = "on";
+
+              //second parameter = val(pattern)
               ledcWrite(motorChannel, 150);
 
               // Count up from 0 to 255
