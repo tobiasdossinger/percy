@@ -80,19 +80,32 @@ void loop() {
       if(tCurrent < currentPattern.tEnd) {
         float totalProgress = float(tCurrent - currentPattern.tStart) / float(currentPattern.tDuration);
 
+<<<<<<< HEAD
         int nextKeyframe = 0;
 
         for(int ii; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
           if(patternList[currentPattern.patternID][ii][0] > totalProgress) {
             nextKeyframe = ii;
+=======
+        int topIndex = 0;
+
+        for(int ii = 0; ii < sizeof(patternList[currentPattern.patternID]) / sizeof(patternList[currentPattern.patternID][0]); ii++) {
+          if(patternList[currentPattern.patternID][ii][0] > totalProgress) {
+            topIndex = ii;
+>>>>>>> 3dc8c45b36e98381e98df8865a57f0c13b6e0ff9
             break;
           }
         }
 
+<<<<<<< HEAD
         Serial.println(nextKeyframe);
 
         float *sectionStart = patternList[currentPattern.patternID][nextKeyframe - 1];
         float *sectionEnd = patternList[currentPattern.patternID][nextKeyframe];
+=======
+        float *sectionStart = patternList[currentPattern.patternID][topIndex - 1];
+        float *sectionEnd = patternList[currentPattern.patternID][topIndex];
+>>>>>>> 3dc8c45b36e98381e98df8865a57f0c13b6e0ff9
 
         float sectionProgress = (totalProgress - sectionStart[0]) / (sectionEnd[0] - sectionStart[0]);
         float currentIntensity = sectionStart[1] + ((sectionEnd[1] - sectionStart[1]) * sectionProgress);
