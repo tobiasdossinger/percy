@@ -14,7 +14,7 @@ print('Connected')
 def sendMotorCommand(motor):
     formattedPower = format(int(power.get()), '03d')
 
-    dataToSend = str(motor) + '-' + str(pattern.get()) + '-' + formattedPower + 'x'
+    dataToSend = 'Motor: ' + str(motor) + '-' + 'Muster: ' + str(pattern.get()) + '-' + 'Power: ' + formattedPower + 'x'
 
     print(dataToSend)
 
