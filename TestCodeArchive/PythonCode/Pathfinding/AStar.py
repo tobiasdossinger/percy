@@ -27,6 +27,7 @@ class SquareGrid:
     def neighbors(self, id):
         (x, y) = id
         results = [(x+1, y), (x, y-1), (x-1, y), (x, y+1)]
+        # results = [(x+1, y), (x, y-1), (x-1, y), (x, y+1), (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)]
         if (x + y) % 2 == 0: results.reverse() # aesthetics
         results = filter(self.in_bounds, results)
         results = filter(self.passable, results)
@@ -56,7 +57,7 @@ class PriorityQueue:
 def heuristic(a, b):
     (x1, y1) = a
     (x2, y2) = b
-    return abs(x1 - x2) + abs(y1 - y2)
+    return abs(x1 - x2) + abs(y1 - y2) * 0.001
 
 def a_star_search(graph, start, goal):
     frontier = PriorityQueue()
@@ -65,20 +66,47 @@ def a_star_search(graph, start, goal):
     cost_so_far = {}
     came_from[start] = None
     cost_so_far[start] = 0
-    
+    previous = start
+
     while not frontier.empty():
         current = frontier.get()
         
         if current == goal:
             break
+
+        print()
+        print()
+        print(current)
         
         for next in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next)
+            print()
+            print('    ', next)
+            if(previous[0] != next[0] and previous[1] != next[1]):
+                print('    ', 'turn')
+                new_cost += 6
+            print(
+                '    ',
+                '(', previous[0], ',', previous[1], ')', '->',
+                '(', current[0], ',', current[1], ')', '->',
+                '(', next[0], ',', next[1], ')',
+                '(', new_cost, ')'
+            )
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 cost_so_far[next] = new_cost
                 priority = new_cost + heuristic(goal, next)
+                # dx1 = current[0] - goal[0]
+                # dy1 = current[1] - goal[1]
+                # dx2 = start[0] - goal[0]
+                # dy2 = start[1] - goal[1]
+                # cross = abs(dx1*dy2 - dx2*dy1)
+                # priority += cross*0.001
                 frontier.put(next, priority)
                 came_from[next] = current
+                # print('current', current, 'new_cost', new_cost, 'cost_so_far', cost_so_far, 'priority', priority, 'came_from', came_from)
+                # print()
+
+        previous = current
     
     return came_from, cost_so_far
 
@@ -105,11 +133,11 @@ def draw_tile(graph, id, style, width):
         if x2 == x1 - 1: r = "<"
         if y2 == y1 + 1: r = "v"
         if y2 == y1 - 1: r = "^"
-    if 'start' in style and id == style['start']: r = "A"
-    if 'goal' in style and id == style['goal']: r = "Z"
     if 'path' in style and id in style['path']: r = "@"
     if 'weights' in style and id in graph.weights: r = graph.weights[id]
-    if id in graph.walls: r = "#" * width
+    if id in graph.walls: r = "#" #* width
+    if 'start' in style and id == style['start']: r = 'A'
+    if 'goal' in style and id == style['goal']: r = 'Z'
     return r
 
 def draw_grid(graph, width=2, **style):
@@ -118,33 +146,69 @@ def draw_grid(graph, width=2, **style):
             print("%%-%ds" % width % draw_tile(graph, (x, y), style, width), end="")
         print()
 
+def build_weights_around_walls(grid, blocks, weight):
+    outerBlocks = []
 
-diagram4 = GridWithWeights(10, 10)
-diagram4.walls = [(1, 7), (1, 8), (2, 7), (2, 8), (3, 7), (3, 8)]
-diagram4.weights = {loc: 5 for loc in [(3, 4), (3, 5), (4, 1), (4, 2),
-                                       (4, 3), (4, 4), (4, 5), (4, 6), 
-                                       (4, 7), (4, 8), (5, 1), (5, 2),
-                                       (5, 3), (5, 4), (5, 5), (5, 6), 
-                                       (5, 7), (5, 8), (6, 2), (6, 3), 
-                                       (6, 4), (6, 5), (6, 6), (6, 7), 
-                                       (7, 3), (7, 4), (7, 5)]}
+    for block in blocks:
+        (blockX, blockY) = block
+        directions = [(blockX+1, blockY), (blockX, blockY-1), (blockX-1, blockY), (blockX, blockY+1)]
+        for i in directions:
+            if i in grid.weights:
+                grid.weights[i] = max(grid.weights[i], weight)
+            else:
+                grid.weights[i] = weight
+        outerBlocks += directions
+    
+    return outerBlocks
 
-print(diagram4.weights)
-print()
-start, goal = (1, 4), (7, 8)
+# print(diagram4.weights)
+# print()
+# start, goal = (1, 4), (7, 8)
+# came_from, cost_so_far = a_star_search(diagram4, start, goal)
+# print()
+# print()
+# print()
+# print()
+# print(came_from)
+# print()
+# print()
+# print(cost_so_far)
+# print()
+# print()
+# print()
+# print()
+# draw_grid(diagram4, width=3, weights=diagram4, start=start, goal=goal)
+# print()
+# draw_grid(diagram4, width=3, point_to=came_from, start=start, goal=goal)
+# print()
+# draw_grid(diagram4, width=3, number=cost_so_far, start=start, goal=goal)
+# print()
+# draw_grid(diagram4, width=3, path=reconstruct_path(came_from, start=start, goal=goal))
+# print()
+# print()
+# print()
+# print()
+# print(reconstruct_path(came_from, start=start, goal=goal))
+
+
+
+
+
+
+
+
+
+diagram4 = GridWithWeights(20, 20)
+diagram4.walls = [(2, 9), (2, 8), (3, 9), (3, 8), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9)]
+
+innerRing = build_weights_around_walls(diagram4, diagram4.walls, 9)
+centerRing = build_weights_around_walls(diagram4, innerRing, 6)
+outerRing = build_weights_around_walls(diagram4, centerRing, 3)
+
+start, goal = (1, 6), (7, 8)
 came_from, cost_so_far = a_star_search(diagram4, start, goal)
-print()
-print()
-print()
-print()
-print(came_from)
-print()
-print()
-print(cost_so_far)
-print()
-print()
-print()
-print()
+
+
 draw_grid(diagram4, width=3, weights=diagram4, start=start, goal=goal)
 print()
 draw_grid(diagram4, width=3, point_to=came_from, start=start, goal=goal)
@@ -152,8 +216,3 @@ print()
 draw_grid(diagram4, width=3, number=cost_so_far, start=start, goal=goal)
 print()
 draw_grid(diagram4, width=3, path=reconstruct_path(came_from, start=start, goal=goal))
-print()
-print()
-print()
-print()
-print(reconstruct_path(came_from, start=start, goal=goal))
