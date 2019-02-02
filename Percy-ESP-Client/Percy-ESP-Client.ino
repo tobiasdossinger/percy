@@ -6,15 +6,21 @@
 const char * ssid = "LocalsOnly";
 const char * password = "Tobias!!";
 
-// Starte den Server auf Port 80
-WiFiServer wifiServer(80);
+// Starte den Server auf Port 8080
+WiFiServer wifiServer(8080);
+
+// Weise dem ESP eine statische IP zu, um ihn leichter zu finden
+// Natürlich 42 
+IPAddress local_IP(192, 168, 178, 50);
+IPAddress gateway(192, 168, 178, 1);
+IPAddress subnet(255, 255, 0, 0);
 
 // Hier werden die PINs der Motoren in einem Array gespeichert
 // So kann man jeden Motor über den Array Index ansprechen
 // Beispiel:
-// int motorPINs[] = {12, 14, 27, 26};
-// Motor 0 wäre dann PIN 12
-int motorPINs[] = {12, 14, 27, 26};
+// int motorPINs[] = {14, 16, 22, 25};
+// Motor 0 wäre dann PIN 14
+int motorPINs[] = {14, 16, 22, 25};
 
 // Hier werden die Muster definiert, etwas umständlich, aber relativ flexibel neue hinzuzufügen
 // Ein Muster ist sehr ähnlich, wie eine CSS Animation. Es werden bestimmte "Keyframes", also feste Punkte innerhalb des Musters definiert
@@ -137,6 +143,8 @@ void socketLoop(char c) {
   // Runde 7: 0
   // Runde 8: 0
   // Runde 9: x
+
+  Serial.print(c);
 
 
   // Das folgende ist ein langer if-else Befehl, es kann also immer nur ein Teil davon ausgeführt werden
@@ -283,6 +291,11 @@ void setup() {
   // Warte kurz, damit der W-LAN Chip und so bereit sind
   delay(1000);
 
+  // Hier wird die statische IP konfiguriert
+  if (!WiFi.config(local_IP, gateway, subnet)) {
+    Serial.println("STA Failed to configure");
+  }
+
   // Verbinde dich mit dem W-LAN
   WiFi.begin(ssid, password);
 
@@ -324,24 +337,25 @@ void loop() {
   motorLoop();
 
   // Falls wir mit einem anderen Gerät verbunden sind
-  if (client) {
-    // So lange wir mit diesem Gerät verbunden sind
-    while (client.connected()) {
-      // Führe ständig motorLoop() aus
-      motorLoop();
-
-      // So lange der Client irgendwelche Daten gesendet hat, die wir noch nicht verarbeitet haben
-      while (client.available() > 0) {
-        // Führe socketLoop aus und verarbeite die Daten
-        socketLoop(client.read());
-      }
-    }
-
-    // Wenn der Client disconnected räum auf
-    client.stop();
-    Serial.println("Client disconnected");
-
+  if(client.connected()) {
+    Serial.println("Client connected");
   }
+  // So lange wir mit diesem Gerät verbunden sind
+  while (client.connected()) {
+    // Führe ständig motorLoop() aus
+    motorLoop();
+
+    // So lange der Client irgendwelche Daten gesendet hat, die wir noch nicht verarbeitet haben
+    while (client.available() > 0) {
+      // Führe socketLoop aus und verarbeite die Daten
+      socketLoop(client.read());
+    }
+  }
+
+  // Wenn der Client disconnected räum auf
+  client.stop();
+  Serial.println("Reconnecting...");
+
 }
 
 
