@@ -11,7 +11,7 @@ WiFiServer wifiServer(8080);
 
 // Weise dem ESP eine statische IP zu, um ihn leichter zu finden
 // Natürlich 42 
-IPAddress local_IP(192, 168, 178, 50);
+IPAddress local_IP(192, 168, 178, 42);
 IPAddress gateway(192, 168, 178, 1);
 IPAddress subnet(255, 255, 0, 0);
 
@@ -210,9 +210,17 @@ void motorLoop() {
     activePattern currentPattern = activePatterns[i];
 
     // Erst einmal überprüfen wir, ob auf dem Motor überhaupt ein Muster abgespielt werden muss
+    // Wenn das aktuelle Pattern eine Pattern ID von 1337 hat, bedeutet das wir wollen die Motoren manuell steuern
+    if(currentPattern.patternID == 1337) {
+      // Die Dauer (tDuration) wird dann entweder zu 0 (Aus) oder 1 (An) anstatt der Zeit in ms
+      // Etwas hacky, aber es funktioniert
+      ledcWrite(i + 1, currentPattern.tDuration * 255);
+    
+    // Wenn die Pattern ID nicht 1337 ist, muss eventuell ein vorgefertigtes Muster abgespielt werden
     // tEnd ist ja wann das Muster fertig ist
     // Wenn diese Zeit also größer ist, als die aktuelle Zeit (tCurrent), dann ist das Muster nicht vorbei und der Motor muss etwas machen
-    if (tCurrent < currentPattern.tEnd) {
+    // Also wird ein festes Muster abgespielt
+    } else if (tCurrent < currentPattern.tEnd) {
       // Anhand der aktuellen Zeit und der Dauer des Vibrationsmusters wird errechnet, wie viel des Musters bereits fertig ist
       // Beispiel wenn das Muster bei 4124 angefangen hat und bei 6624 aufhört, also 2500ms dauert und tCurrent gerade 5351 ist:
       // float totalProgress = (5351 - 4124) / (2500)
@@ -269,9 +277,9 @@ void motorLoop() {
       // Ganz unten stehen viele Serial.print() Zeilen kommentiert, diese können hier zum debuggen eingefügt werden
       // ###########
 
-    // Dieses Else kommt noch von der Abfrage oben, ob der aktuelle Motor vibrieren soll.
+    // Dieses else if kommt noch von der Abfrage oben, ob der aktuelle Motor vibrieren soll.
     // Falls er also nicht vibrieren soll (Kein Muster vorhanden oder gespeichertes Muster ist schon vorbei)
-    } else {
+    } else if (tCurrent >= currentPattern.tEnd) {
       // Wird er einfach auf 0 gesetzt
       ledcWrite(i + 1, 0);
     }
