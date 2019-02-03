@@ -10,7 +10,7 @@ import config as cfg
 def reconstruct_path(came_from, start, goal):
     current = goal
     path = []
-    while current != start:
+    while current != start and current in came_from:
         path.append(current)
         current = came_from[current]
     # path.append(start) # optional
@@ -54,6 +54,8 @@ def draw_tile(graph, id, style):
     if 'path' in style and id in style['path']: options['color'] = '#F28D3C'
     if 'start' in style and id == style['start']: options = {"text": 'A', "color": '#0F0'}
     if 'goal' in style and id == style['goal']: options = {"text": 'Z', "color": '#F00'}
+    if id == style['current']: options['color'] = '#0FF'
+    if id == style['previous']: options['color'] = '#099'
     drawRectangle(id[0], id[1], options)
     return options
 
@@ -129,6 +131,9 @@ def heuristic(a, b):
     return abs(x1 - x2) + abs(y1 - y2) * 0.001
 
 def a_star_search(graph, start, goal):
+    global limit
+
+    i = 0
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {}
@@ -138,32 +143,35 @@ def a_star_search(graph, start, goal):
     previous = start
 
     while not frontier.empty():
+        i += 1
         current = frontier.get()
 
         if current == goal:
-            break
+            return came_from, cost_so_far, current, previous
 
-        print()
-        print()
-        print(current)
+        # print()
+        # print()
+        # print(current)
         
         for next in graph.neighbors(current):
             new_cost = cost_so_far[current] + graph.cost(current, next)
+            previous = came_from[current]
 
-            print()
-            print('    ', next)
-            if(previous[0] != next[0] and previous[1] != next[1]):
-                print('    ', 'turn')
-                new_cost += 5
-            print(
-                '    ',
-                '(', previous[0], ',', previous[1], ')', '->',
-                '(', current[0], ',', current[1], ')', '->',
-                '(', next[0], ',', next[1], ')',
-                '(', new_cost, ')'
-            )
+            # print()
+            # print('    ', next)
+            if(previous):
+                if(previous[0] != next[0] and previous[1] != next[1]):
+                    # print('    ', 'turn')
+                    new_cost += 5
+                # print(
+                #     '    ',
+                #     '(', previous[0], ',', previous[1], ')', '->',
+                #     '(', current[0], ',', current[1], ')', '->',
+                #     '(', next[0], ',', next[1], ')',
+                #     '(', new_cost, ')'
+                # )
             if next not in cost_so_far or new_cost < cost_so_far[next]:
-                print('    ', 'Best so far')
+                # print('    ', 'Best so far')
                 cost_so_far[next] = new_cost
                 priority = new_cost + heuristic(goal, next)
                 # dx1 = current[0] - goal[0]
@@ -177,9 +185,10 @@ def a_star_search(graph, start, goal):
                 # print('current', current, 'new_cost', new_cost, 'cost_so_far', cost_so_far, 'priority', priority, 'came_from', came_from)
                 # print()
 
-        previous = current
-    
-    return came_from, cost_so_far
+        if i > limit:
+            return came_from, cost_so_far, current, previous
+
+    return came_from, cost_so_far, current, previous
 
 ''' INTERFACE '''
 
@@ -210,30 +219,34 @@ def a_star_search(graph, start, goal):
     #     c.create_line([(0, i), (w, i)], tag='grid_line')
 
 def initialize(event=None):
+    global limit
+
+    c.delete("all")
+
     cfg.GRID_SIZE = min(c.winfo_width() / cfg.GRID_WIDTH, c.winfo_height() / cfg.GRID_HEIGHT)
-    print('WINDOW', c.winfo_width(), c.winfo_height())
-    print('GRID', cfg.GRID_WIDTH, cfg.GRID_HEIGHT, cfg.GRID_SIZE)
+    # print('WINDOW', c.winfo_width(), c.winfo_height())
+    # print('GRID', cfg.GRID_WIDTH, cfg.GRID_HEIGHT, cfg.GRID_SIZE)
     
     diagram4 = GridWithWeights(cfg.GRID_WIDTH, cfg.GRID_HEIGHT)
-    diagram4.walls = [(2, 9), (2, 8), (3, 9), (3, 8), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9)]
+    diagram4.walls = [(0, 7), (1, 7), (2, 7), (2, 9), (2, 8), (3, 9), (3, 8), (4, 3), (4, 4), (4, 5), (4, 6), (4, 7), (4, 8), (4, 9)]
 
     innerRing = build_weights_around_walls(diagram4, diagram4.walls, 9)
     centerRing = build_weights_around_walls(diagram4, innerRing, 6)
     outerRing = build_weights_around_walls(diagram4, centerRing, 3)
 
-    start, goal = (1, 6), (7, 8)
-    came_from, cost_so_far = a_star_search(diagram4, start, goal)
-    print(came_from)
-    print(cost_so_far)
-    print()
-    print()
-    # draw_grid(diagram4, width=3, walls=diagram4, start=start, goal=goal)
-    print()
-    # draw_grid(diagram4, width=3, weights=diagram4, start=start, goal=goal)
-    print()
+    start, goal = (1, 6), (6, 11)
+    came_from, cost_so_far, current, previous = a_star_search(diagram4, start, goal)
+    # print()
+    # print()
+    # # draw_grid(diagram4, width=3, walls=diagram4, start=start, goal=goal)
+    # print()
+    # # draw_grid(diagram4, width=3, weights=diagram4, start=start, goal=goal)
+    # print()
     draw_grid(
         diagram4, 
         width=3, 
+        current=current, 
+        previous=previous, 
         path=reconstruct_path(came_from, start=start, goal=goal), 
         number=cost_so_far, 
         point_to=came_from, 
@@ -242,10 +255,19 @@ def initialize(event=None):
     )
     # createGrid()
 
+def slider_changed(val):
+    global limit
+    
+    limit = int(val)
+    initialize()
+
+limit = 0
 
 root = tk.Tk()
-c = tk.Canvas(root, height=1000, width=1000, bg='white')
-c.pack(fill=tk.BOTH, expand=True)
+c = tk.Canvas(root, height=900, width=1000, bg='white')
+c.grid(row=0, column=0)#.pack(fill=tk.BOTH, expand=True)
 c.bind('<Configure>', initialize)
+
+tk.Scale(root, from_=0, to=175, length=500, command=slider_changed).grid(row=0, column=1)
 
 root.mainloop()
