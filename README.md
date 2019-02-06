@@ -1,4 +1,4 @@
-# Percy
+![zeichenflache 1](https://user-images.githubusercontent.com/33021996/50771728-b781c500-128b-11e9-9991-d5bf7b0f7c51.png)
 
 Percy ist ein Leitsystem für blinde Menschen. Es besteht aus einer modischen Brille und am Körper aufklebbaren Vibrationspads. Die Brille nimmt die Umgebung wahr und erkennt Hindernisse. Die Pads führen den Nutzer mithilfe bestimmter Vibrationsimpulse sicher um diese herum.
 
