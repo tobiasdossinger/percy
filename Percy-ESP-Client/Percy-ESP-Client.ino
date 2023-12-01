@@ -3,8 +3,8 @@
 
 // Nutzername und Passwort vom W-LAN Router / Access Point
 // Ja, Plaintext... Boo!
-const char * ssid = "LocalsOnly";
-const char * password = "Tobias!!";
+const char * ssid = "***";
+const char * password = "***";
 
 // Starte den Server auf Port 8080
 WiFiServer wifiServer(8080);
